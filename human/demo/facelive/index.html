@@ -35,11 +35,15 @@
             text-align: center;
             box-sizing: border-box;
         }
-
-        .page.active {
-            opacity: 1;
-            visibility: visible;
-        }
+		
+		.stage-page {
+		    width: 100%;
+		    display: none;
+		}
+		
+		.stage-page.active {
+		    display: block;
+		}
 
         /* 初始页面样式 */
         #page-init {
@@ -188,9 +192,10 @@
         }
 
         .start-btn {
+			margin-top: 1.875rem;
             width: 100%;
             height: 56px;
-            background: #4caf50;
+            background: #02B17B;
             border: none;
             border-radius: 28px;
             color: #fff;
@@ -205,140 +210,71 @@
             background: #45a049;
         }
 
-        /* 检测页面样式 */
-        #page-detection {
-            background: #000;
+
+        .detection-container {
+            text-align: center;
+            padding: 20px;
         }
 
         #canvas {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .detection-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .detection-hud {
-            position: absolute;
-            left: 0;
-            top: 0;
-            right: 0;
-            padding: 12px 16px;
-            padding-top: max(12px, env(safe-area-inset-top));
-            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
-        }
-
-        .detection-title {
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
-        .action-badges {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .action-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            background: rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.7);
-            transition: all 0.3s ease;
-        }
-
-        .action-badge.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .action-badge.completed {
-            background: rgba(76, 175, 80, 0.3);
-            color: #81c784;
-        }
-
-        .detection-tip {
-            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
-            font-weight: 500;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            text-align: center;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .detection-bottom {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 16px;
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
-            background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);
-            text-align: center;
-        }
-
-        .progress-container {
             width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        .progress-text {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
             height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 2px;
-            transition: width 0.2s ease;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .step-circle.active {
+            background: #02B17B;
+            color: white;
+        }
+
+        .step-circle.inactive {
+            background: #E0E0E0;
+            color: #999;
+        }
+
+        .step-arrow {
+            color: #999;
+            font-size: 16px;
+        }
+
+        .detection-hint {
+            background: #D9F7ED;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 16px;
+            color: #333;
+            line-height: 1.4;
         }
 
         .status-text {
-            margin-top: 10px;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* 完成页面样式 */
-        #page-result {
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
-        }
-
-        .result-content {
-            text-align: center;
-            padding: 40px 20px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
         }
 
         .result-icon {
@@ -346,9 +282,10 @@
             height: 100px;
             margin: 0 auto 30px;
             border-radius: 50%;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
+			position: absolute;
         }
 
         .result-icon.success {
@@ -371,12 +308,6 @@
             font-size: 26px;
             font-weight: 600;
             margin-bottom: 10px;
-        }
-
-        .result-subtitle {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 40px;
         }
 
         .retry-btn {
@@ -420,86 +351,85 @@
 </head>
 <body>
     <!-- 初始页面 -->
-    <div id="page-init" class="page active">
+    <div class="page active">
         <div class="init-content">
             <h1 class="init-title">Face the screen Follow the prompts</h1>
             <div class="avatar-container">
                 <div class="avatar-circle">
                     <video id="init-camera" class="init-camera" autoplay playsinline muted></video>
                     <div id="avatar-countdown" class="avatar-countdown">5s</div>
+					<canvas id="canvas"></canvas>
+					<div id="result-icon" class="result-icon success">
+					    <svg id="icon-success" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+					    <svg id="icon-failed" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+					</div>
                 </div>
             </div>
-            <div class="attention-box" id="attention-box">
-                <div class="attention-text">Please pay attention when testing</div>
-            </div>
-            <div class="countdown-hint" id="countdown-hint">
-                Please make sure the face is within the circle, and the detection will start after the countdown is over
-            </div>
-            <div class="tips-grid" id="tips-grid">
-                <div class="tip-item">
-                    <div class="tip-icon success">
-                        <svg viewBox="0 0 100 100" fill="#4caf50"><circle cx="50" cy="50" r="45" fill="#e8f5e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#4caf50"/><path d="M25 35 L35 45 M75 35 L65 45" stroke="#4caf50" stroke-width="3"/><path d="M40 25 L60 25 M40 75 L60 75" stroke="#4caf50" stroke-width="3"/></svg>
-                    </div>
-                    <div class="tip-text">Need bright light</div>
-                </div>
-                <div class="tip-item">
-                    <div class="tip-icon error">
-                        <svg viewBox="0 0 100 100" fill="#f44336"><circle cx="50" cy="50" r="45" fill="#ffe8e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#f44336"/><path d="M35 35 L65 35" stroke="#f44336" stroke-width="3"/><path d="M25 45 L75 45" stroke="#f44336" stroke-width="3"/><path d="M40 25 L60 25 M40 75 L60 75" stroke="#f44336" stroke-width="3"/></svg>
-                    </div>
-                    <div class="tip-text">Do not cover your face</div>
-                </div>
-                <div class="tip-item">
-                    <div class="tip-icon error">
-                        <svg viewBox="0 0 100 100" fill="#f44336"><circle cx="50" cy="50" r="45" fill="#ffe8e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#f44336"/><path d="M30 25 Q50 20 70 25" stroke="#f44336" stroke-width="3" fill="none"/><path d="M40 75 L60 75" stroke="#f44336" stroke-width="3"/></svg>
-                    </div>
-                    <div class="tip-text">No hat</div>
-                </div>
-                <div class="tip-item">
-                    <div class="tip-icon error">
-                        <svg viewBox="0 0 100 100" fill="#f44336"><circle cx="50" cy="50" r="45" fill="#ffe8e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#f44336"/><path d="M25 35 L35 45 M75 35 L65 45" stroke="#f44336" stroke-width="3"/><path d="M40 25 L60 25 M40 75 L60 75" stroke="#f44336" stroke-width="3"/><path d="M15 50 L25 50 M75 50 L85 50" stroke="#f44336" stroke-width="3"/></svg>
-                    </div>
-                    <div class="tip-text">Do not move too fast</div>
-                </div>
-            </div>
-            <button id="btn-start" class="start-btn">立即开始</button>
+			<div id="page-init" class="stage-page active">
+				<div class="attention-box" id="attention-box">
+				    <div class="attention-text">Please pay attention when testing</div>
+				</div>
+				<div class="countdown-hint" id="countdown-hint">
+				    Please make sure the face is within the circle, and the detection will start after the countdown is over
+				</div>
+				<div class="tips-grid" id="tips-grid">
+				    <div class="tip-item">
+				        <div class="tip-icon success">
+				            <svg viewBox="0 0 100 100" fill="#4caf50"><circle cx="50" cy="50" r="45" fill="#e8f5e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#4caf50"/><path d="M25 35 L35 45 M75 35 L65 45" stroke="#4caf50" stroke-width="3"/><path d="M40 25 L60 25 M40 75 L60 75" stroke="#4caf50" stroke-width="3"/></svg>
+				        </div>
+				        <div class="tip-text">Need bright light</div>
+				    </div>
+				    <div class="tip-item">
+				        <div class="tip-icon error">
+				            <svg viewBox="0 0 100 100" fill="#f44336"><circle cx="50" cy="50" r="45" fill="#ffe8e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#f44336"/><path d="M35 35 L65 35" stroke="#f44336" stroke-width="3"/><path d="M25 45 L75 45" stroke="#f44336" stroke-width="3"/><path d="M40 25 L60 25 M40 75 L60 75" stroke="#f44336" stroke-width="3"/></svg>
+				        </div>
+				        <div class="tip-text">Do not cover your face</div>
+				    </div>
+				    <div class="tip-item">
+				        <div class="tip-icon error">
+				            <svg viewBox="0 0 100 100" fill="#f44336"><circle cx="50" cy="50" r="45" fill="#ffe8e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#f44336"/><path d="M30 25 Q50 20 70 25" stroke="#f44336" stroke-width="3" fill="none"/><path d="M40 75 L60 75" stroke="#f44336" stroke-width="3"/></svg>
+				        </div>
+				        <div class="tip-text">No hat</div>
+				    </div>
+				    <div class="tip-item">
+				        <div class="tip-icon error">
+				            <svg viewBox="0 0 100 100" fill="#f44336"><circle cx="50" cy="50" r="45" fill="#ffe8e8"/><path d="M30 40 Q40 30 50 40 Q60 30 70 40 V60 Q60 70 50 60 Q40 70 30 60 Z" fill="#f44336"/><path d="M25 35 L35 45 M75 35 L65 45" stroke="#f44336" stroke-width="3"/><path d="M40 25 L60 25 M40 75 L60 75" stroke="#f44336" stroke-width="3"/><path d="M15 50 L25 50 M75 50 L85 50" stroke="#f44336" stroke-width="3"/></svg>
+				        </div>
+				        <div class="tip-text">Do not move too fast</div>
+				    </div>
+				</div>
+				<button id="btn-start" class="start-btn">立即开始</button>
+			</div>
+			
+			<!-- 检测页面 -->
+			<div id="page-detection" class="stage-page">
+			    <div class="detection-container">
+			        
+			        <div class="step-indicator">
+			            <div id="step-1" class="step-circle active">1</div>
+			            <span class="step-arrow">»</span>
+			            <div id="step-2" class="step-circle inactive">2</div>
+			            <span class="step-arrow">»</span>
+			            <div id="step-3" class="step-circle inactive">3</div>
+			        </div>
+			        <div class="detection-hint" id="detection-hint">
+			            Please open your mouth
+			        </div>
+			        <div class="status-text" id="status-text"></div>
+			    </div>
+			</div>
+			
+			<!-- 结果页面 -->
+			<div id="page-result" class="stage-page">
+				
+				<h2 id="result-title" class="result-title">验证通过</h2>
+				<button id="btn-retry" class="start-btn">重新验证</button>
+			</div>
+            
         </div>
     </div>
 
-    <!-- 检测页面 -->
-    <div id="page-detection" class="page">
-        <canvas id="canvas"></canvas>
-        <div class="detection-hud">
-            <div class="detection-title">活体检测</div>
-            <div class="action-badges">
-                <span id="badge-mouth" class="action-badge">张嘴</span>
-                <span id="badge-left" class="action-badge">左摇头</span>
-                <span id="badge-right" class="action-badge">右摇头</span>
-            </div>
-        </div>
-        <div id="detection-tip" class="detection-tip"></div>
-        <div class="detection-bottom">
-            <div class="progress-container">
-                <div id="progress-text" class="progress-text">进度：0%</div>
-                <div class="progress-bar">
-                    <div id="progress-fill" class="progress-fill"></div>
-                </div>
-                <div id="status-text" class="status-text"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 结果页面 -->
-    <div id="page-result" class="page">
-        <div class="result-content">
-            <div id="result-icon" class="result-icon success">
-                <svg id="icon-success" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                <svg id="icon-failed" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-            </div>
-            <h2 id="result-title" class="result-title">验证通过</h2>
-            <p id="result-subtitle" class="result-subtitle">人脸验证已完成</p>
-            <button id="btn-retry" class="retry-btn">重新验证</button>
-        </div>
-    </div>
+    
 
     <script type="module">
         import * as H from '../../dist/human.esm.js';
@@ -558,13 +488,11 @@
         };
 
         const canvas = document.getElementById('canvas');
-        const tipEl = document.getElementById('detection-tip');
-        const progressText = document.getElementById('progress-text');
-        const progressFill = document.getElementById('progress-fill');
+        const detectionHint = document.getElementById('detection-hint');
         const statusText = document.getElementById('status-text');
-        const badgeMouth = document.getElementById('badge-mouth');
-        const badgeLeft = document.getElementById('badge-left');
-        const badgeRight = document.getElementById('badge-right');
+        const step1 = document.getElementById('step-1');
+        const step2 = document.getElementById('step-2');
+        const step3 = document.getElementById('step-3');
 
         const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
@@ -605,10 +533,10 @@
 
         const stepText = () => {
             const s = currentStep();
-            if (s === STEP.MOUTH_OPEN) return '请张嘴';
-            if (s === STEP.HEAD_LEFT) return '请左摇头';
-            if (s === STEP.HEAD_RIGHT) return '请右摇头';
-            return '已完成';
+            if (s === STEP.MOUTH_OPEN) return 'Please open your mouth';
+            if (s === STEP.HEAD_LEFT) return 'Please turn your head slowly to the left';
+            if (s === STEP.HEAD_RIGHT) return 'Please turn your head slowly to the right';
+            return 'Completed';
         };
 
         const showPage = (pageId) => {
@@ -617,29 +545,22 @@
             state.currentPage = pageId;
         };
 
-        const updateBadges = () => {
-            badgeMouth.classList.remove('active', 'completed');
-            badgeLeft.classList.remove('active', 'completed');
-            badgeRight.classList.remove('active', 'completed');
-
-            if (state.stepIndex >= 1) badgeMouth.classList.add('completed');
-            if (state.stepIndex >= 2) badgeLeft.classList.add('completed');
-            if (state.stepIndex >= 3) badgeRight.classList.add('completed');
-
-            const s = currentStep();
-            if (s === STEP.MOUTH_OPEN) badgeMouth.classList.add('active');
-            else if (s === STEP.HEAD_LEFT) badgeLeft.classList.add('active');
-            else if (s === STEP.HEAD_RIGHT) badgeRight.classList.add('active');
+        const updateStepIndicator = () => {
+            step1.className = 'step-circle ' + (state.stepIndex >= 0 ? 'active' : 'inactive');
+            step2.className = 'step-circle ' + (state.stepIndex >= 1 ? 'active' : 'inactive');
+            step3.className = 'step-circle ' + (state.stepIndex >= 2 ? 'active' : 'inactive');
         };
 
         const markStepPassed = () => {
             state.stepIndex += 1;
             state.stableCount = 0;
             state.lastCompletedAt = nowMs();
-            updateBadges();
+            updateStepIndicator();
 
             if (currentStep() === STEP.DONE) {
                 showResult(true);
+            } else {
+                detectionHint.textContent = stepText();
             }
         };
 
@@ -649,14 +570,14 @@
 
             if (!face) {
                 state.stableCount = 0;
-                statusText.textContent = '未检测到人脸，请对准镜头';
+                statusText.textContent = 'No face detected, please align with the camera';
                 return;
             }
 
             const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
             if (score && score < thresholds.faceScore) {
                 state.stableCount = 0;
-                statusText.textContent = '人脸置信度偏低，请靠近并正对镜头';
+                statusText.textContent = 'Face confidence is low, please move closer and face the camera';
                 return;
             }
 
@@ -683,9 +604,7 @@
 
             const progress = Math.min(1, state.stableCount / thresholds.stableFrames);
             const progressPct = Math.round(progress * 100);
-            progressFill.style.width = `${progressPct}%`;
-            progressText.textContent = `进度：${progressPct}%`;
-            statusText.textContent = `人脸：${Math.round((score || 0) * 100)}% | 张嘴：${mouthRatio.toFixed(2)} | 偏转：${yaw.toFixed(2)}`;
+            statusText.textContent = `Progress: ${progressPct}% | Face: ${Math.round((score || 0) * 100)}% | Mouth: ${mouthRatio.toFixed(2)} | Yaw: ${yaw.toFixed(2)}`;
 
             if (state.stableCount >= thresholds.stableFrames) {
                 markStepPassed();
@@ -696,24 +615,21 @@
             human.webcam.pause();
             const resultIcon = document.getElementById('result-icon');
             const resultTitle = document.getElementById('result-title');
-            const resultSubtitle = document.getElementById('result-subtitle');
             const iconSuccess = document.getElementById('icon-success');
             const iconFailed = document.getElementById('icon-failed');
-
+			resultIcon.style.display = 'block';
             if (passed) {
                 resultIcon.classList.remove('failed');
                 resultIcon.classList.add('success');
                 iconSuccess.style.display = 'block';
                 iconFailed.style.display = 'none';
-                resultTitle.textContent = '验证通过';
-                resultSubtitle.textContent = '人脸验证已完成';
+                resultTitle.textContent = 'Verification passed';
             } else {
                 resultIcon.classList.remove('success');
                 resultIcon.classList.add('failed');
                 iconSuccess.style.display = 'none';
                 iconFailed.style.display = 'block';
-                resultTitle.textContent = '验证失败';
-                resultSubtitle.textContent = '请按照提示完成验证';
+                resultTitle.textContent = 'Verification failed';
             }
 
             showPage(PAGES.RESULT);
@@ -757,14 +673,14 @@
             state.stableCount = 0;
             state.leftYawSign = 0;
             state.lastCompletedAt = 0;
-            updateBadges();
+            updateStepIndicator();
+            detectionHint.textContent = stepText();
 
             await human.webcam.start({ crop: true });
             human.video(human.webcam.element);
             canvas.width = human.webcam.width;
             canvas.height = human.webcam.height;
 
-            tipEl.textContent = stepText();
             drawLoop();
         };
 
@@ -776,7 +692,6 @@
             await human.draw.all(canvas, interpolated);
 
             if (currentStep() !== STEP.DONE) {
-                tipEl.textContent = stepText();
                 const face = getPrimaryFace(interpolated);
                 checkStep(face);
             }
@@ -789,10 +704,8 @@
             state.stableCount = 0;
             state.leftYawSign = 0;
             state.lastCompletedAt = 0;
-            progressFill.style.width = '0%';
-            progressText.textContent = '进度：0%';
             statusText.textContent = '';
-            updateBadges();
+            updateStepIndicator();
 
             const btnStart = document.getElementById('btn-start');
             const attentionBox = document.getElementById('attention-box');
