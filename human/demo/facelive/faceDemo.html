@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>Face Live</title>
+    <meta name="viewport" content="width=device-width" id="viewport">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="shortcut icon" href="../../favicon.ico" type="image/x-icon">
+    <style>
+      @font-face { font-family: 'Lato'; font-display: swap; font-style: normal; font-weight: 100; src: local('Lato'), url('../../assets/lato-light.woff2') }
+      body { font-family: 'Lato', 'Segoe UI'; font-size: 16px; font-variant: small-caps; margin: 0; background: black; color: white; overflow: hidden; width: 100vw; height: 100vh; }
+      #canvas { margin: 0 auto; width: 100%; height: 100%; display: block; }
+      #hud { position: fixed; left: 0; top: 0; right: 0; padding: 10px 12px; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(6px); }
+      #title { font-size: 14px; opacity: 0.9; }
+      #tip { margin-top: 6px; font-size: 18px; font-variant: normal; }
+      #meta { margin-top: 6px; font-size: 12px; opacity: 0.85; white-space: pre-wrap; }
+      #status { margin-top: 8px; font-size: 12px; opacity: 0.85; }
+      #badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.15); margin-left: 8px; }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="hud">
+      <div id="title">Face Live<span id="badge">张嘴 → 左摇头 → 右摇头</span></div>
+      <div id="tip"></div>
+      <div id="status"></div>
+      <div id="meta"></div>
+    </div>
+    <script type="module">
+      import * as H from '../../dist/human.esm.js';
+
+      const canvas = document.getElementById('canvas');
+      const tipEl = document.getElementById('tip');
+      const statusEl = document.getElementById('status');
+      const metaEl = document.getElementById('meta');
+      const parseBool = (value, defaultValue) => {
+        if (value === undefined || value === null || value === '') return defaultValue;
+        if (typeof value === 'boolean') return value;
+        const v = String(value).trim().toLowerCase();
+        if (['1', 'true', 'yes', 'y', 'on'].includes(v)) return true;
+        if (['0', 'false', 'no', 'n', 'off'].includes(v)) return false;
+        return defaultValue;
+      };
+
+      const uiConfig = (() => {
+        const url = new URL(window.location.href);
+        const sp = url.searchParams;
+        const fromUrl = {
+          drawFaceFeatures: parseBool(sp.get('features') ?? sp.get('drawFeatures') ?? sp.get('overlay'), true),
+        };
+        const fromWindow = window.FACE_LIVE_CONFIG && typeof window.FACE_LIVE_CONFIG === 'object' ? window.FACE_LIVE_CONFIG : {};
+        return {
+          drawFaceFeatures: true,
+          ...fromWindow,
+          ...fromUrl,
+        };
+      })();
+
+      const STEP = {
+        MOUTH_OPEN: 'MOUTH_OPEN',
+        HEAD_LEFT: 'HEAD_LEFT',
+        HEAD_RIGHT: 'HEAD_RIGHT',
+        DONE: 'DONE',
+      };
+
+      const steps = [STEP.MOUTH_OPEN, STEP.HEAD_LEFT, STEP.HEAD_RIGHT];
+
+      const humanConfig = {
+        modelBasePath: '../../models',
+        filter: { enabled: true, equalization: true, flip: false },
+        face: {
+          enabled: true,
+          detector: { rotation: false },
+          mesh: { enabled: true },
+          iris: { enabled: true },
+          attention: { enabled: false },
+          emotion: { enabled: false },
+          description: { enabled: false },
+          antispoof: { enabled: false },
+          liveness: { enabled: false },
+        },
+        body: { enabled: false },
+        hand: { enabled: false },
+        gesture: { enabled: false },
+        object: { enabled: false },
+        segmentation: { enabled: false },
+      };
+
+      const human = new H.Human(humanConfig);
+
+      const thresholds = {
+        mouthOpenRatio: 0.075,
+        headYawRadians: 0.25,
+        stableFrames: 8,
+        faceScore: 0.65,
+      };
+
+      const state = {
+        stepIndex: 0,
+        stableCount: 0,
+        leftYawSign: 0,
+        lastCompletedAt: 0,
+      };
+
+      const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+      const dist2d = (a, b) => {
+        const dx = (a?.[0] ?? 0) - (b?.[0] ?? 0);
+        const dy = (a?.[1] ?? 0) - (b?.[1] ?? 0);
+        return Math.hypot(dx, dy);
+      };
+
+      const getPrimaryFace = (res) => {
+        const faces = res?.face || res?.faces || [];
+        if (!Array.isArray(faces) || faces.length === 0) return null;
+        const scored = faces
+          .map((f) => ({ f, score: (typeof f.score === 'number' ? f.score : (typeof f.confidence === 'number' ? f.confidence : 0)) }))
+          .sort((a, b) => b.score - a.score);
+        return scored[0]?.f ?? null;
+      };
+
+      const computeMouthOpenRatio = (face) => {
+        const mesh = face?.mesh;
+        if (!Array.isArray(mesh) || mesh.length < 292) return 0;
+        const upper = mesh[13];
+        const lower = mesh[14];
+        const left = mesh[61];
+        const right = mesh[291];
+        const gap = dist2d(upper, lower);
+        const width = dist2d(left, right);
+        if (!width) return 0;
+        return gap / width;
+      };
+
+      const computeYaw = (face) => {
+        const yaw = face?.rotation?.angle?.yaw;
+        return typeof yaw === 'number' ? yaw : 0;
+      };
+
+      const currentStep = () => (state.stepIndex >= steps.length ? STEP.DONE : steps[state.stepIndex]);
+
+      const stepText = () => {
+        const s = currentStep();
+        if (s === STEP.MOUTH_OPEN) return '请张嘴';
+        if (s === STEP.HEAD_LEFT) return '请左摇头';
+        if (s === STEP.HEAD_RIGHT) return '请右摇头';
+        return '已通过';
+      };
+
+      const markStepPassed = () => {
+        state.stepIndex += 1;
+        state.stableCount = 0;
+        state.lastCompletedAt = nowMs();
+        if (currentStep() === STEP.DONE) {
+          tipEl.textContent = '已通过';
+          statusEl.textContent = '结果：PASS';
+          window.dispatchEvent(new CustomEvent('facelive:pass', { detail: { actions: steps } }));
+          human.webcam.pause();
+        }
+      };
+
+      const checkStep = (face) => {
+        const s = currentStep();
+        if (s === STEP.DONE) return;
+
+        if (!face) {
+          state.stableCount = 0;
+          statusEl.textContent = '未检测到人脸';
+          return;
+        }
+
+        const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
+        if (score && score < thresholds.faceScore) {
+          state.stableCount = 0;
+          statusEl.textContent = '人脸置信度偏低，请靠近并正对镜头';
+          return;
+        }
+
+        const mouthRatio = computeMouthOpenRatio(face);
+        const yaw = computeYaw(face);
+        const yawAbs = Math.abs(yaw);
+        const cooldown = nowMs() - state.lastCompletedAt < 450;
+
+        let ok = false;
+        if (!cooldown) {
+          if (s === STEP.MOUTH_OPEN) {
+            ok = mouthRatio >= thresholds.mouthOpenRatio;
+          } else if (s === STEP.HEAD_LEFT) {
+            ok = yawAbs >= thresholds.headYawRadians;
+            if (ok) state.leftYawSign = Math.sign(yaw) || 1;
+          } else if (s === STEP.HEAD_RIGHT) {
+            const sign = Math.sign(yaw) || 1;
+            ok = yawAbs >= thresholds.headYawRadians && (state.leftYawSign ? sign === -state.leftYawSign : true);
+          }
+        }
+
+        if (ok) state.stableCount += 1;
+        else state.stableCount = 0;
+
+        const progress = Math.min(1, state.stableCount / thresholds.stableFrames);
+        const progressPct = Math.round(progress * 100);
+        statusEl.textContent = `进度：${progressPct}% | 人脸：${Math.round((score || 0) * 100)}% | 张嘴比：${mouthRatio.toFixed(3)} | Yaw：${yaw.toFixed(3)} rad`;
+
+        if (state.stableCount >= thresholds.stableFrames) markStepPassed();
+      };
+
+      async function drawLoop() {
+        const interpolated = human.next();
+        human.draw.canvas(human.webcam.element, canvas);
+        if (uiConfig.drawFaceFeatures) await human.draw.all(canvas, interpolated);
+
+        if (currentStep() !== STEP.DONE) {
+          tipEl.textContent = stepText();
+          const face = getPrimaryFace(interpolated);
+          checkStep(face);
+        }
+
+        metaEl.textContent = `human: ${human.version} | tfjs: ${human.tf.version['tfjs-core']}
+platform: ${human.env.platform} | agent: ${human.env.agent}`;
+
+        setTimeout(drawLoop, 30);
+      }
+
+      async function main() {
+        await human.webcam.start({ crop: true });
+        human.video(human.webcam.element);
+        canvas.width = human.webcam.width;
+        canvas.height = human.webcam.height;
+        canvas.onclick = async () => {
+          if (human.webcam.paused) await human.webcam.play();
+          else human.webcam.pause();
+        };
+        tipEl.textContent = stepText();
+        await drawLoop();
+      }
+
+      window.onload = main;
+    </script>
+  </body>
+</html>
