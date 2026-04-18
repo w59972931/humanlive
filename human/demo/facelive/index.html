@@ -277,29 +277,31 @@
         }
 
         .result-icon {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 30px;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
 			position: absolute;
+			right: 0;
+			bottom: 16px;
+			width: 2.375rem;
+			height: 2.375rem;
+			border-radius: 50%;
+			background: #00b578;
+			border: 6px solid #ffffff;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
         }
 
         .result-icon.success {
             background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-            box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4);
         }
 
         .result-icon.failed {
             background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
-            box-shadow: 0 10px 40px rgba(244, 67, 54, 0.4);
         }
 
         .result-icon svg {
-            width: 50px;
-            height: 50px;
+            width: 30px;
+            height: 30px;
             fill: #fff;
         }
 
@@ -358,11 +360,11 @@
                     <video id="init-camera" class="init-camera" autoplay playsinline muted></video>
                     <div id="avatar-countdown" class="avatar-countdown">5s</div>
 					<canvas id="canvas"></canvas>
-					<div id="result-icon" class="result-icon success">
-					    <svg id="icon-success" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-					    <svg id="icon-failed" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-					</div>
                 </div>
+				<div id="result-icon" class="result-icon success">
+				    <svg id="icon-success" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+				    <svg id="icon-failed" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+				</div>
             </div>
 			<div id="page-init" class="stage-page active">
 				<div class="attention-box" id="attention-box">
@@ -420,7 +422,6 @@
 			
 			<!-- 结果页面 -->
 			<div id="page-result" class="stage-page">
-				
 				<h2 id="result-title" class="result-title">验证通过</h2>
 				<button id="btn-retry" class="start-btn">重新验证</button>
 			</div>
@@ -539,7 +540,7 @@
         };
 
         const showPage = (pageId) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.stage-page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             state.currentPage = pageId;
         };
@@ -616,7 +617,7 @@
             const resultTitle = document.getElementById('result-title');
             const iconSuccess = document.getElementById('icon-success');
             const iconFailed = document.getElementById('icon-failed');
-			resultIcon.style.display = 'block';
+			resultIcon.style.display = 'flex';
             if (passed) {
                 resultIcon.classList.remove('failed');
                 resultIcon.classList.add('success');
@@ -709,13 +710,19 @@
             const attentionBox = document.getElementById('attention-box');
             const countdownHint = document.getElementById('countdown-hint');
             const tipsGrid = document.getElementById('tips-grid');
-            
+            const resultIcon = document.getElementById('result-icon');
+			
+			resultIcon.style.display = 'none';
             btnStart.style.display = 'block';
             attentionBox.style.display = 'block';
             tipsGrid.style.display = 'grid';
             countdownHint.classList.remove('active');
 
             showPage(PAGES.INIT);
+			
+			human.webcam.play();
+			canvas.width = human.webcam.width;
+			canvas.height = human.webcam.height;
         };
 
         async function initCamera() {
@@ -755,10 +762,10 @@
             initCamera();
         });
 
-        canvas.addEventListener('click', async () => {
-            if (human.webcam.paused) await human.webcam.play();
-            else human.webcam.pause();
-        });
+        // canvas.addEventListener('click', async () => {
+        //     if (human.webcam.paused) await human.webcam.play();
+        //     else human.webcam.pause();
+        // });
 
         window.onload = () => {
             initCamera();
