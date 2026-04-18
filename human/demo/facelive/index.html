@@ -31,7 +31,7 @@
             width: 100%;
             max-width: 420px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 3.125rem 1.25rem;
             text-align: center;
             box-sizing: border-box;
         }
@@ -54,7 +54,6 @@
 
         .init-content {
             text-align: center;
-			padding: 3.125rem 1.25rem;
 			width: 100%;
 			height: 100%;
         }
@@ -676,8 +675,7 @@
             updateStepIndicator();
             detectionHint.textContent = stepText();
 
-            await human.webcam.start({ crop: true });
-            human.video(human.webcam.element);
+            
             canvas.width = human.webcam.width;
             canvas.height = human.webcam.height;
 
@@ -742,6 +740,11 @@
                 video.srcObject = null;
             }
         }
+		
+		async function initHuman(){
+			await human.webcam.start({ crop: true });
+			human.video(human.webcam.element);
+		}
 
         document.getElementById('btn-start').addEventListener('click', () => {
             startCountdown();
@@ -759,6 +762,7 @@
 
         window.onload = () => {
             initCamera();
+			initHuman();
         };
     </script>
 </body>
