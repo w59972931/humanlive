@@ -622,7 +622,8 @@
 		
 		const steps = [STEP.MOUTH_OPEN, STEP.HEAD_LEFT, STEP.HEAD_RIGHT];
 		
-		const uploadXhr = null;
+		let yawAbsMin = 0;
+		let yawAbsMax = 0;
         // 自动检测语言
 		const language = getUrlParam(window.location.href).language
 		const HOME_HOST = window.location.origin
@@ -758,7 +759,6 @@
             const yaw = computeYaw(face);
             const yawAbs = Math.abs(yaw);
 
-            let ok = false;
 			let mouthOk = false;
 			let leftOk = false;
 			let rightOk = false;
@@ -766,16 +766,28 @@
                 mouthOk = mouthRatio >= thresholds.mouthOpenRatio;
             } else if (s === STEP.HEAD_LEFT) {
 				mouthOk = mouthRatio >= thresholds.mouthOpenRatio;
-                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0;
+                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0 && (yawAbsMax-yawAbsMin).toFixed(2) > 0.1;
+				if(yawAbsMin == 0 || yawAbsMin > yawAbs){
+					yawAbsMin = yawAbs;
+				}
+				if(yawAbsMax < yawAbs){
+					yawAbsMax = yawAbs;
+				}
             } else if (s === STEP.HEAD_RIGHT) {
                 mouthOk = mouthRatio >= thresholds.mouthOpenRatio;
-                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0;
-                rightOk = yawAbs >= thresholds.headYawRadians && yaw > 0;
+                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0 && (yawAbsMax-yawAbsMin).toFixed(2) > 0.1;
+                rightOk = yawAbs >= thresholds.headYawRadians && yaw > 0 && (yawAbsMax-yawAbsMin).toFixed(2) > 0.1;
+				if(yawAbsMin > yawAbs){
+					yawAbsMin = yawAbs;
+				}
+				if(yawAbsMax < yawAbs){
+					yawAbsMax = yawAbs;
+				}
             }
             
             if (mouthOk || leftOk || rightOk) state.stableCount += 1;
 
-            statusText.textContent = `Face: ${Math.round((score || 0) * 100)}% | Mouth: ${mouthRatio.toFixed(2)} | Yaw: ${yaw.toFixed(2)}`;
+            statusText.textContent = `Face: ${((yawAbsMax-yawAbsMin).toFixed(2))} | Mouth: ${mouthRatio.toFixed(2)} | Yaw: ${yaw.toFixed(2)}`;
 
             if (state.stableCount >= thresholds.stableFrames) {
                 showResult(true);
@@ -883,6 +895,8 @@
             state.leftYawSign = 0;
             state.lastCompletedAt = 0;
             statusText.textContent = '';
+			yawAbsMin = 0;
+			yawAbsMax = 0;
             updateStepIndicator();
 
             const btnStart = document.getElementById('btn-start');
