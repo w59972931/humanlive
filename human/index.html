@@ -590,9 +590,10 @@
 		
 		const thresholds = {
 		    mouthOpenRatio: 0.075,
-		    headYawRadians: 0.25,
+		    headYawRadians: 0.2,
 		    stableFrames: 8,
-		    faceScore: 0.65
+		    faceScore: 0.65,
+			fixNum:0.05
 		};
 		
 		const state = {
@@ -766,7 +767,7 @@
                 mouthOk = mouthRatio >= thresholds.mouthOpenRatio;
             } else if (s === STEP.HEAD_LEFT) {
 				mouthOk = mouthRatio >= thresholds.mouthOpenRatio;
-                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0 && (yawAbsMax-yawAbsMin).toFixed(2) > 0.1;
+                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0 && (yawAbsMax-yawAbsMin).toFixed(2) > thresholds.fixNum;
 				if(yawAbsMin == 0 || yawAbsMin > yawAbs){
 					yawAbsMin = yawAbs;
 				}
@@ -775,8 +776,8 @@
 				}
             } else if (s === STEP.HEAD_RIGHT) {
                 mouthOk = mouthRatio >= thresholds.mouthOpenRatio;
-                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0 && (yawAbsMax-yawAbsMin).toFixed(2) > 0.1;
-                rightOk = yawAbs >= thresholds.headYawRadians && yaw > 0 && (yawAbsMax-yawAbsMin).toFixed(2) > 0.1;
+                leftOk = yawAbs >= thresholds.headYawRadians && yaw < 0 && (yawAbsMax-yawAbsMin).toFixed(2) > thresholds.fixNum;
+                rightOk = yawAbs >= thresholds.headYawRadians && yaw > 0 && (yawAbsMax-yawAbsMin).toFixed(2) > thresholds.fixNum;
 				if(yawAbsMin > yawAbs){
 					yawAbsMin = yawAbs;
 				}
@@ -924,7 +925,8 @@
         async function initCamera() {
             const video = document.getElementById('init-camera');
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+				const constraints = {video: {facingMode: "user"}, audio: false};
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
                     video.play();
