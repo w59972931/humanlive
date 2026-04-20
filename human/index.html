@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <title>Liveness Detection</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="manifest" href="../manifest.webmanifest">
-    <link rel="shortcut icon" href="../../favicon.ico" type="image/x-icon">
+    <!-- <link rel="manifest" href="./manifest.webmanifest"> -->
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
     <style>
 
         html, body {
@@ -360,19 +360,19 @@
 				</div>
 				<div class="tips-grid" id="tips-grid">
 				    <div class="tip-item">
-						<img class="tip-icon" src="./res/img_needbrightlight.png"/>
+						<img class="tip-icon" src="./assets/img_needbrightlight.png"/>
 				        <div class="tip-text">Ensure sufficient lighting</div>
 				    </div>
 				    <div class="tip-item">
-						<img class="tip-icon" src="./res/img_donotcoveryourface.png"/>
+						<img class="tip-icon" src="./assets/img_donotcoveryourface.png"/>
 				        <div class="tip-text">Do not cover your face</div>
 				    </div>
 				    <div class="tip-item">
-				        <img class="tip-icon" src="./res/img_nohat.png"/>
+				        <img class="tip-icon" src="./assets/img_nohat.png"/>
 				        <div class="tip-text">Do not wear a hat</div>
 				    </div>
 				    <div class="tip-item">
-				        <img class="tip-icon" src="./res/img_needbrightlight.png"/>
+				        <img class="tip-icon" src="./assets/img_needbrightlight.png"/>
 				        <div class="tip-text">Do not move quickly</div>
 				    </div>
 				</div>
@@ -409,75 +409,182 @@
     
 
     <script type="module">
-        import * as H from '../../dist/human.esm.js';
+        import * as H from './dist/human.esm.js';
 
-        const PAGES = {
-            INIT: 'page-init',
-            DETECTION: 'page-detection',
-            RESULT: 'page-result'
-        };
-
-        const STEP = {
-            MOUTH_OPEN: 'MOUTH_OPEN',
-            HEAD_LEFT: 'HEAD_LEFT',
-            HEAD_RIGHT: 'HEAD_RIGHT',
-            DONE: 'DONE'
-        };
-
-        const steps = [STEP.MOUTH_OPEN, STEP.HEAD_LEFT, STEP.HEAD_RIGHT];
-
-        const humanConfig = {
-            modelBasePath: '../../models',
-            filter: { enabled: true, equalization: true, flip: false },
-            face: {
-                enabled: true,
-                detector: { rotation: false },
-                mesh: { enabled: true },
-                iris: { enabled: true },
-                attention: { enabled: false },
-                emotion: { enabled: false },
-                description: { enabled: false },
-                antispoof: { enabled: false },
-                liveness: { enabled: false }
+        // 多语言支持
+        const i18n = {
+            en: {
+                initTitle: 'Please face the screen and follow the prompts',
+                attentionText: 'Please face the screen',
+                countdownHint: 'Please ensure your face is inside the circle; detection will begin after the countdown ends',
+                tips: {
+                    light: 'Ensure sufficient lighting',
+                    noCover: 'Do not cover your face',
+                    noHat: 'Do not wear a hat',
+                    noFastMove: 'Do not move quickly'
+                },
+                startBtn: 'Start Now',
+                detectionHints: {
+                    MOUTH_OPEN: 'Please open your mouth',
+                    HEAD_LEFT: 'Please turn your head slowly to the left',
+                    HEAD_RIGHT: 'Please turn your head slowly to the right',
+                    DONE: 'Detection Passed'
+                },
+                statusTexts: {
+                    insideCircle: 'Please ensure your face is inside the circle'
+                },
+                result: {
+                    passed: 'Detection Successful',
+                    failed: 'Detection Failed'
+                },
+                retryBtn: 'Retry Detection'
             },
-            body: { enabled: false },
-            hand: { enabled: false },
-            gesture: { enabled: false },
-            object: { enabled: false },
-            segmentation: { enabled: false }
+            zh: {
+                initTitle: '请正对屏幕并跟随提示',
+                attentionText: '请正对屏幕',
+                countdownHint: '请确保人脸在圆圈内，倒计时结束后将开始检测',
+                tips: {
+                    light: '光线充足',
+                    noCover: '勿遮挡面部',
+                    noHat: '请勿戴帽子',
+                    noFastMove: '不要快速移动'
+                },
+                startBtn: '立即开始',
+                detectionHints: {
+                    MOUTH_OPEN: '请张开嘴',
+                    HEAD_LEFT: '请慢慢向左转头',
+                    HEAD_RIGHT: '请慢慢向右转头',
+                    DONE: '检测通过'
+                },
+                statusTexts: {
+                    insideCircle: '请确保人脸在圆圈内'
+                },
+                result: {
+                    passed: '检测成功',
+                    failed: '检测失败'
+                },
+                retryBtn: '重新检测'
+            },
+            ur: {
+                initTitle: 'براہِ کرم اسکرین کی طرف سیدھا دیکھیں اور ہدایات پر عمل کریں',
+                attentionText: 'براہِ کرم اسکرین کی طرف سیدھا دیکھیں',
+                countdownHint: 'یقینی بنائیں کہ چہرہ دائرے کے اندر ہو، کاؤنٹ ڈاؤن ختم ہونے کے بعد جانچ شروع ہوگی',
+                tips: {
+                    light: 'مناسب روشنی ہو',
+                    noCover: 'چہرہ نہ ڈھانپیں',
+                    noHat: 'ٹوپی نہ پہنیں',
+                    noFastMove: 'تیزی سے حرکت نہ کریں'
+                },
+                startBtn: 'فوراً شروع کریں',
+                detectionHints: {
+                    MOUTH_OPEN: 'براہِ کرم منہ کھولیں',
+                    HEAD_LEFT: 'براہِ کرم آہستہ سے سر بائیں طرف گھمائیں',
+                    HEAD_RIGHT: 'براہِ کرم آہستہ سے سر دائیں طرف گھمائیں',
+                    DONE: 'جانچ کامیاب'
+                },
+                statusTexts: {
+                    insideCircle: 'براہ کرم یقینی بنائیں کہ چہرہ دائرے کے اندر ہے'
+                },
+                result: {
+                    passed: 'جانچ کامیاب',
+                    failed: 'جانچ ناکام'
+                },
+                retryBtn: 'دوبارہ جانچ کریں'
+            }
         };
-
-        const human = new H.Human(humanConfig);
-
-        const thresholds = {
-            mouthOpenRatio: 0.075,
-            headYawRadians: 0.25,
-            stableFrames: 8,
-            faceScore: 0.65
-        };
-
-        const state = {
-            currentPage: PAGES.INIT,
-            stepIndex: 0,
-            stableCount: 0,
-            leftYawSign: 0,
-            lastCompletedAt: 0,
-            startTime: 0,
-            lastStepChangeTime: 0
-        };
+		
+		const PAGES = {
+		    INIT: 'page-init',
+		    DETECTION: 'page-detection',
+		    RESULT: 'page-result'
+		};
+		
+		const STEP = {
+		    MOUTH_OPEN: 'MOUTH_OPEN',
+		    HEAD_LEFT: 'HEAD_LEFT',
+		    HEAD_RIGHT: 'HEAD_RIGHT',
+		    DONE: 'DONE'
+		};
+		const humanConfig = {
+		    modelBasePath: '../../models',
+		    filter: { enabled: true, equalization: true, flip: false },
+		    face: {
+		        enabled: true,
+		        detector: { rotation: false },
+		        mesh: { enabled: true },
+		        iris: { enabled: true },
+		        attention: { enabled: false },
+		        emotion: { enabled: false },
+		        description: { enabled: false },
+		        antispoof: { enabled: false },
+		        liveness: { enabled: false }
+		    },
+		    body: { enabled: false },
+		    hand: { enabled: false },
+		    gesture: { enabled: false },
+		    object: { enabled: false },
+		    segmentation: { enabled: false }
+		};
+		
+		const human = new H.Human(humanConfig);
+		
+		const thresholds = {
+		    mouthOpenRatio: 0.075,
+		    headYawRadians: 0.25,
+		    stableFrames: 8,
+		    faceScore: 0.65
+		};
+		
+		const state = {
+		    currentPage: PAGES.INIT,
+		    stepIndex: 0,
+		    stableCount: 0,
+		    leftYawSign: 0,
+		    lastCompletedAt: 0,
+		    startTime: 0,
+		    lastStepChangeTime: 0
+		};
 		
 		const ACTIVE_MAX_WAIT_MS = 15000;
 		const NO_FACE_TIMEOUT_MS = 5000;
 		const COUNTDOWN_SECONDS = 3;
+		
+		const canvas = document.getElementById('canvas');
+		const detectionHint = document.getElementById('detection-hint');
+		const statusText = document.getElementById('status-text');
+		const step1 = document.getElementById('step-1');
+		const step2 = document.getElementById('step-2');
+		const step3 = document.getElementById('step-3');
+		
+		const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+		
+		const steps = [STEP.MOUTH_OPEN, STEP.HEAD_LEFT, STEP.HEAD_RIGHT];
 
-        const canvas = document.getElementById('canvas');
-        const detectionHint = document.getElementById('detection-hint');
-        const statusText = document.getElementById('status-text');
-        const step1 = document.getElementById('step-1');
-        const step2 = document.getElementById('step-2');
-        const step3 = document.getElementById('step-3');
+        // 自动检测语言
+		let language = getUrlParam(window.location.href).language
+        const lang = language=== 'zh' ? 'zh' : (language === 'ur' ? 'ur' : 'en');
 
-        const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        // 初始化多语言文本
+        function initI18n() {
+			document.documentElement.setAttribute('lang', lang === 'zh' ? 'zh' : (lang === 'ur' ? 'ur' : 'en'));
+            // 更新初始页面文本
+            document.querySelector('.init-title').textContent = i18n[lang].initTitle;
+            document.querySelector('.attention-text').textContent = i18n[lang].attentionText;
+            document.getElementById('countdown-hint').textContent = i18n[lang].countdownHint;
+            
+            // 更新提示文本
+            const tipItems = document.querySelectorAll('.tip-text');
+            tipItems[0].textContent = i18n[lang].tips.light;
+            tipItems[1].textContent = i18n[lang].tips.noCover;
+            tipItems[2].textContent = i18n[lang].tips.noHat;
+            tipItems[3].textContent = i18n[lang].tips.noFastMove;
+            
+            // 更新按钮文本
+            document.getElementById('btn-start').textContent = i18n[lang].startBtn;
+            document.getElementById('btn-retry').textContent = i18n[lang].retryBtn;
+        }
+
+        
 
         const dist2d = (a, b) => {
             const dx = (a?.[0] ?? 0) - (b?.[0] ?? 0);
@@ -516,10 +623,7 @@
 
         const stepText = () => {
             const s = currentStep();
-            if (s === STEP.MOUTH_OPEN) return 'Please open your mouth';
-            if (s === STEP.HEAD_LEFT) return 'Please slowly turn your head left';
-            if (s === STEP.HEAD_RIGHT) return 'Please slowly turn your head right';
-            return 'Completed';
+            return i18n[lang].detectionHints[s] || i18n[lang].detectionHints.DONE;
         };
 
         const showPage = (pageId) => {
@@ -570,14 +674,14 @@
 
             if (!face) {
                 state.stableCount = 0;
-                statusText.textContent = 'Please ensure your face is inside the circle';
+                statusText.textContent = i18n[lang].statusTexts.insideCircle;
                 return;
             }
 
             const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
             if (score && score < thresholds.faceScore) {
                 state.stableCount = 0;
-                statusText.textContent = 'Please ensure your face is inside the circle';
+                statusText.textContent = i18n[lang].statusTexts.insideCircle;
                 return;
             }
 
@@ -624,7 +728,7 @@
 				avatarCircle.classList.add('success');
                 iconSuccess.style.display = 'block';
                 iconFailed.style.display = 'none';
-                resultTitle.textContent = 'Verification passed';
+                resultTitle.textContent = i18n[lang].result.passed;
             } else {
                 resultIcon.classList.remove('success');
                 resultIcon.classList.add('failed');
@@ -632,7 +736,7 @@
 				avatarCircle.classList.add('failed');
                 iconSuccess.style.display = 'none';
                 iconFailed.style.display = 'block';
-                resultTitle.textContent = 'Verification failed';
+                resultTitle.textContent = i18n[lang].result.failed;
             }
 
             showPage(PAGES.RESULT);
@@ -764,6 +868,19 @@
                 
             }
 		}
+		
+		function getUrlParam(str) {
+		    var json = {};
+		    if (str.indexOf('?') != -1) {
+		        var str1 = str.slice(str.indexOf('?') + 1);
+		        var arr = str1.split("&");
+		        for (var i = 0; i < arr.length; i++) {
+		            var arr1 = arr[i].split('=');
+		            json[arr1[0]] = arr1[1]
+		        }
+		    }
+		    return json
+		}
 
         document.getElementById('btn-start').addEventListener('click', () => {
             startCountdown();
@@ -780,6 +897,7 @@
         // });
 
         window.onload = () => {
+            initI18n();
             initCamera();
 			initHuman();
         };
