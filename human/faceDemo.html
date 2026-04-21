@@ -5,7 +5,7 @@
     <title>Liveness Detection</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <!-- <link rel="manifest" href="./manifest.webmanifest"> -->
-    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <!-- <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"> -->
     <style>
 
         html, body {
@@ -295,6 +295,8 @@
             font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 0.625rem;
+			display: none;
+			margin-top: 1.5625rem;
         }
 
         .retry-btn {
@@ -450,12 +452,11 @@
 			<!-- 结果页面 -->
 			<div id="page-result" class="stage-page">
 				<h2 id="result-title" class="result-title">Detection Successful</h2>
-				<button id="btn-retry" class="start-btn">Retry Detection</button>
 			</div>
 			
 			<div id="page-result-fail" class="stage-page">
-				<!-- <h2 id="result-title" class="result-title">Detection Successful</h2> -->
-				<!-- <button id="btn-retry" class="start-btn">Retry Detection</button> -->
+				<h2 id="result-title-fail" class="result-title">Detection Successful</h2>
+				<button id="btn-retry" class="start-btn" style="display: none;">Retry Detection</button>
 			</div>
 			
 			<div id="upload-loading">
@@ -724,7 +725,7 @@
             updateStepIndicator();
 
             if (currentStep() === STEP.DONE) {
-                showResult(true);
+                // showResult(true);
             } else {
                 detectionHint.textContent = stepText();
             }
@@ -800,42 +801,54 @@
             statusText.textContent = `Face: ${((yawAbsMax-yawAbsMin).toFixed(2))} | Mouth: ${mouthRatio.toFixed(2)} | Yaw: ${yaw.toFixed(2)}`;
 
             if (state.stableCount >= thresholds.stableFrames) {
-                showResult(true);
+				showResult(true);
             }
         };
 
         const showResult = (passed) => {
             human.webcam.pause();
-            const resultIcon = document.getElementById('result-icon');
-            const resultTitle = document.getElementById('result-title');
-            const iconSuccess = document.getElementById('icon-success');
-            const iconFailed = document.getElementById('icon-failed');
-			const avatarCircle = document.getElementById('avatar-circle');
-			
             if (passed) {
-				resultIcon.style.display = 'flex';
-                resultIcon.classList.remove('failed');
-                resultIcon.classList.add('success');
-				avatarCircle.classList.remove('failed');
-				avatarCircle.classList.add('success');
-                iconSuccess.style.display = 'block';
-                iconFailed.style.display = 'none';
-                resultTitle.textContent = i18n[lang].result.passed;
-				startUploadFlow();
 				showPage(PAGES.RESULT);
+				startUploadFlow();
             } else {
-				// resultIcon.style.display = 'flex';
-    //             resultIcon.classList.remove('success');
-    //             resultIcon.classList.add('failed');
-				// avatarCircle.classList.remove('success');
-				// avatarCircle.classList.add('failed');
-    //             iconSuccess.style.display = 'none';
-    //             iconFailed.style.display = 'block';
-    //             resultTitle.textContent = i18n[lang].result.failed;
 				showPage(PAGES.RESULTFAIL);
 				window.location.href = 'faceFail.html';
             }
         };
+		
+		const showResultState = (passed) => {
+		        const resultIcon = document.getElementById('result-icon');
+		        const resultTitle = document.getElementById('result-title');
+				const resultFailTitle = document.getElementById('result-title-fail');
+		        const iconSuccess = document.getElementById('icon-success');
+		        const iconFailed = document.getElementById('icon-failed');
+				const avatarCircle = document.getElementById('avatar-circle');
+				
+		        if (passed) {
+					resultIcon.style.display = 'flex';
+		            resultIcon.classList.remove('failed');
+		            resultIcon.classList.add('success');
+					avatarCircle.classList.remove('failed');
+					avatarCircle.classList.add('success');
+		            iconSuccess.style.display = 'block';
+		            iconFailed.style.display = 'none';
+					resultTitle.style.display = 'block';
+		            resultTitle.textContent = i18n[lang].result.passed;
+					
+					showPage(PAGES.RESULT);
+		        } else {
+					// resultIcon.style.display = 'flex';
+		//             resultIcon.classList.remove('success');
+		//             resultIcon.classList.add('failed');
+					// avatarCircle.classList.remove('success');
+					// avatarCircle.classList.add('failed');
+		//             iconSuccess.style.display = 'none';
+		//             iconFailed.style.display = 'block';
+		//             resultFailTitle.textContent = i18n[lang].result.failed;
+					showPage(PAGES.RESULTFAIL);
+					window.location.href = 'faceFail.html';
+		        }
+		    };
 
         const startCountdown = () => {
             const countdownEl = document.getElementById('avatar-countdown');
@@ -892,8 +905,8 @@
 
             const interpolated = human.next();
             human.draw.canvas(human.webcam.element, canvas);
-            await human.draw.all(canvas, interpolated);
-
+            // 绘制人脸检测边框
+            // await human.draw.all(canvas, interpolated);
             if (currentStep() !== STEP.DONE) {
                 const face = getPrimaryFace(interpolated);
                 checkStep(face);
@@ -1031,6 +1044,7 @@
 			        return;
 			    }
 			    hideUploadLoading();
+				showResultState(true);
 			    setTimeout(() => {
 			      window.location.href = 'faceSuccess.html';
 			    }, 1500);
