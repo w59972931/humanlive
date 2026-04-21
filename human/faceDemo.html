@@ -754,14 +754,14 @@
 
             if (!face) {
                 state.stableCount = 0;
-                statusText.textContent = i18n[lang].statusTexts.insideCircle+"1111";
+                statusText.textContent = i18n[lang].statusTexts.insideCircle;
                 return;
             }
 
             const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
             if (score && score < thresholds.faceScore) {
                 state.stableCount = 0;
-                statusText.textContent = i18n[lang].statusTexts.insideCircle+"22222";
+                statusText.textContent = i18n[lang].statusTexts.insideCircle;
                 return;
             }
 			//获取最佳人脸
@@ -906,7 +906,7 @@
             const interpolated = human.next();
             human.draw.canvas(human.webcam.element, canvas);
             // 绘制人脸检测边框
-            await human.draw.all(canvas, interpolated);
+            // await human.draw.all(canvas, interpolated);
             if (currentStep() !== STEP.DONE) {
                 const face = getPrimaryFace(interpolated);
                 checkStep(face);
