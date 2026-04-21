@@ -70,7 +70,7 @@
         filter: { enabled: true, equalization: true, flip: false },
         face: {
           enabled: true,
-          detector: { rotation: false },
+          detector: { rotation: false, minConfidence: 0.5 },
           mesh: { enabled: true },
           iris: { enabled: true },
           attention: { enabled: false },
@@ -92,7 +92,7 @@
         mouthOpenRatio: 0.075,
         headYawRadians: 0.25,
         stableFrames: 8,
-        faceScore: 0.65,
+        faceScore: 0.55, // 降低人脸置信度阈值，提高检测灵敏度
       };
 
       const state = {
@@ -218,20 +218,31 @@
         metaEl.textContent = `human: ${human.version} | tfjs: ${human.tf.version['tfjs-core']}
 platform: ${human.env.platform} | agent: ${human.env.agent}`;
 
-        setTimeout(drawLoop, 100);
+        setTimeout(drawLoop, 30);
       }
 
       async function main() {
-        await human.webcam.start({ crop: true });
-        human.video(human.webcam.element);
-        canvas.width = human.webcam.width;
-        canvas.height = human.webcam.height;
-        canvas.onclick = async () => {
-          if (human.webcam.paused) await human.webcam.play();
-          else human.webcam.pause();
-        };
-        tipEl.textContent = stepText();
-        await drawLoop();
+        try {
+          // 尝试启动摄像头，使用更兼容的配置
+          await human.webcam.start({
+            crop: false, // 禁用crop以提高兼容性
+            width: 640, // 设置合适的分辨率
+            height: 480
+          });
+          human.video(human.webcam.element);
+          canvas.width = human.webcam.width;
+          canvas.height = human.webcam.height;
+          canvas.onclick = async () => {
+            if (human.webcam.paused) await human.webcam.play();
+            else human.webcam.pause();
+          };
+          tipEl.textContent = stepText();
+          await drawLoop();
+        } catch (error) {
+          console.error('摄像头启动失败:', error);
+          tipEl.textContent = '摄像头启动失败';
+          statusEl.textContent = '错误: ' + error.message;
+        }
       }
 
       window.onload = main;
