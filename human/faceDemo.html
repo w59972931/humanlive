@@ -901,19 +901,36 @@
         };
 
         async function drawLoop() {
-            if (state.currentPage !== PAGES.DETECTION) return;
+            // if (state.currentPage !== PAGES.DETECTION) return;
 
-            const interpolated = human.next();
-            human.draw.canvas(human.webcam.element, canvas);
-            // 绘制人脸检测边框
-            // await human.draw.all(canvas, interpolated);
-            if (currentStep() !== STEP.DONE) {
-                const face = getPrimaryFace(interpolated);
-                checkStep(face);
-            }
+            // const interpolated = human.next();
+            // human.draw.canvas(human.webcam.element, canvas);
+            // // 绘制人脸检测边框
+            // // await human.draw.all(canvas, interpolated);
+            // if (currentStep() !== STEP.DONE) {
+            //     const face = getPrimaryFace(interpolated);
+            //     checkStep(face);
+            // }
 
-            setTimeout(drawLoop, 30);
+            // setTimeout(drawLoop, 30);
+			detectVideo();
         }
+		
+		function detectVideo() {
+			const video = document.getElementById('init-camera');
+		  human.detect(video).then((result) => {
+		
+		    human.draw.canvas(result.canvas, canvas);
+		    // then draw results on the same canvas
+		    human.draw.face(canvas, result.face);
+		    human.draw.body(canvas, result.body);
+		    human.draw.hand(canvas, result.hand);
+		    human.draw.gesture(canvas, result.gesture);
+		    // and loop immediate to the next frame
+		    requestAnimationFrame(detectVideo);
+		    return result;
+		  });
+		}
 
         const resetToInit = () => {
             state.stepIndex = 0;
@@ -974,7 +991,7 @@
 		async function initHuman(){
 			try {
 				await human.webcam.start({ crop: true });
-				human.video(human.webcam.element);
+				// human.video(human.webcam.element);
 			}catch (error) {
                 showResult(false);
             }
