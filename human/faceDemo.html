@@ -901,28 +901,20 @@
         };
 
         async function drawLoop() {
-            // if (state.currentPage !== PAGES.DETECTION) return;
+            if (state.currentPage !== PAGES.DETECTION) return;
 
-            // const interpolated = human.next();
-            // human.draw.canvas(human.webcam.element, canvas);
-            // // 绘制人脸检测边框
-            // // await human.draw.all(canvas, interpolated);
-            // if (currentStep() !== STEP.DONE) {
-            //     const face = getPrimaryFace(interpolated);
-            //     checkStep(face);
-            // }
+            const interpolated = human.next();
+            human.draw.canvas(human.webcam.element, canvas);
+            // 绘制人脸检测边框
+            await human.draw.all(canvas, interpolated);
+            if (currentStep() !== STEP.DONE) {
+                const face = getPrimaryFace(interpolated);
+                checkStep(face);
+            }
 
-            // setTimeout(drawLoop, 30);
-			detectVideo();
+            setTimeout(drawLoop, 30);
         }
 		
-		async function detectVideo() {
-			const inputVideo = document.getElementById('init-camera');
-		  const result = await human.detect(inputVideo); // run detection
-		  await human.draw.all(canvas, result); // draw all results
-		  setTimeout(detectVideo, 300);
-		}
-
         const resetToInit = () => {
             state.stepIndex = 0;
             state.stableCount = 0;
@@ -982,7 +974,7 @@
 		async function initHuman(){
 			try {
 				await human.webcam.start({ crop: true });
-				// human.video(human.webcam.element);
+				human.video(human.webcam.element);
 			}catch (error) {
                 showResult(false);
             }
