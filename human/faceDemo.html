@@ -754,14 +754,14 @@
 
             if (!face) {
                 state.stableCount = 0;
-                statusText.textContent = i18n[lang].statusTexts.insideCircle;
+                statusText.textContent = i18n[lang].statusTexts.insideCircle+"1111";
                 return;
             }
 
             const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
             if (score && score < thresholds.faceScore) {
                 state.stableCount = 0;
-                statusText.textContent = i18n[lang].statusTexts.insideCircle;
+                statusText.textContent = i18n[lang].statusTexts.insideCircle+"22222";
                 return;
             }
 			//获取最佳人脸
