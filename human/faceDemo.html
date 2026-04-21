@@ -919,8 +919,8 @@
 		async function detectVideo() {
 			const inputVideo = document.getElementById('init-camera');
 		  const result = await human.detect(inputVideo); // run detection
-		  human.draw.all(canvas, result); // draw all results
-		  requestAnimationFrame(detectVideo); // run loop
+		  await human.draw.all(canvas, result); // draw all results
+		  setTimeout(detectVideo, 300);
 		}
 
         const resetToInit = () => {
