@@ -70,7 +70,13 @@
         filter: { enabled: true, equalization: true, flip: false },
         face: {
           enabled: true,
-          detector: { rotation: false, minConfidence: 0.5 },
+          detector: { 
+            rotation: false, 
+            minConfidence: 0.3, // 进一步降低置信度阈值
+            maxDetected: 1, // 只检测一个人脸
+            skipFrames: 0, // 不跳过任何帧
+            scale: 1.5 // 增加检测范围
+          },
           mesh: { enabled: true },
           iris: { enabled: true },
           attention: { enabled: false },
@@ -84,6 +90,7 @@
         gesture: { enabled: false },
         object: { enabled: false },
         segmentation: { enabled: false },
+        debug: true // 启用调试模式
       };
 
       const human = new H.Human(humanConfig);
@@ -215,8 +222,13 @@
           checkStep(face);
         }
 
+        // 添加调试信息
+        const faceCount = interpolated?.face?.length || interpolated?.faces?.length || 0;
+        const hasFace = faceCount > 0;
         metaEl.textContent = `human: ${human.version} | tfjs: ${human.tf.version['tfjs-core']}
-platform: ${human.env.platform} | agent: ${human.env.agent}`;
+platform: ${human.env.platform} | agent: ${human.env.agent}
+face count: ${faceCount} | has face: ${hasFace}
+state: ${human.state}`;
 
         setTimeout(drawLoop, 30);
       }
@@ -224,19 +236,34 @@ platform: ${human.env.platform} | agent: ${human.env.agent}`;
       async function main() {
         try {
           // 尝试启动摄像头，使用更兼容的配置
+          console.log('正在启动摄像头...');
           await human.webcam.start({
             crop: false, // 禁用crop以提高兼容性
             width: 640, // 设置合适的分辨率
             height: 480
           });
+          console.log('摄像头启动成功:', {
+            width: human.webcam.width,
+            height: human.webcam.height,
+            element: human.webcam.element
+          });
+          
+          // 检查模型加载状态
+          console.log('模型加载状态:', human.state);
+          
+          // 启动视频处理
+          console.log('正在启动视频处理...');
           human.video(human.webcam.element);
+          
           canvas.width = human.webcam.width;
           canvas.height = human.webcam.height;
           canvas.onclick = async () => {
             if (human.webcam.paused) await human.webcam.play();
             else human.webcam.pause();
           };
+          
           tipEl.textContent = stepText();
+          console.log('开始绘制循环...');
           await drawLoop();
         } catch (error) {
           console.error('摄像头启动失败:', error);
