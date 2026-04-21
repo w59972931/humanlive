@@ -906,7 +906,7 @@
             const interpolated = human.next();
             human.draw.canvas(human.webcam.element, canvas);
             // 绘制人脸检测边框
-            // await human.draw.all(canvas, interpolated);
+            await human.draw.all(canvas, interpolated);
             if (currentStep() !== STEP.DONE) {
                 const face = getPrimaryFace(interpolated);
                 checkStep(face);
