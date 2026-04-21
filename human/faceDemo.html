@@ -916,20 +916,11 @@
 			detectVideo();
         }
 		
-		function detectVideo() {
-			const video = document.getElementById('init-camera');
-		  human.detect(video).then((result) => {
-		
-		    human.draw.canvas(result.canvas, canvas);
-		    // then draw results on the same canvas
-		    human.draw.face(canvas, result.face);
-		    human.draw.body(canvas, result.body);
-		    human.draw.hand(canvas, result.hand);
-		    human.draw.gesture(canvas, result.gesture);
-		    // and loop immediate to the next frame
-		    requestAnimationFrame(detectVideo);
-		    return result;
-		  });
+		async function detectVideo() {
+			const inputVideo = document.getElementById('init-camera');
+		  const result = await human.detect(inputVideo); // run detection
+		  human.draw.all(canvas, result); // draw all results
+		  requestAnimationFrame(detectVideo); // run loop
 		}
 
         const resetToInit = () => {
