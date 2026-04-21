@@ -453,6 +453,11 @@
 				<button id="btn-retry" class="start-btn">Retry Detection</button>
 			</div>
 			
+			<div id="page-result-fail" class="stage-page">
+				<!-- <h2 id="result-title" class="result-title">Detection Successful</h2> -->
+				<!-- <button id="btn-retry" class="start-btn">Retry Detection</button> -->
+			</div>
+			
 			<div id="upload-loading">
 			    <div class="upload-modal">
 			        <div class="spinner"></div>
@@ -556,7 +561,8 @@
 		const PAGES = {
 		    INIT: 'page-init',
 		    DETECTION: 'page-detection',
-		    RESULT: 'page-result'
+		    RESULT: 'page-result',
+			RESULTFAIL:'page-result-fail'
 		};
 		
 		const STEP = {
@@ -622,7 +628,9 @@
 		const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 		
 		const steps = [STEP.MOUTH_OPEN, STEP.HEAD_LEFT, STEP.HEAD_RIGHT];
-		
+		let bestFace = {
+		    blob: null, score: 0
+		};
 		let yawAbsMin = 0;
 		let yawAbsMax = 0;
         // 自动检测语言
@@ -755,7 +763,8 @@
                 statusText.textContent = i18n[lang].statusTexts.insideCircle;
                 return;
             }
-
+			//获取最佳人脸
+			getBestFaceBlob(face);
             const mouthRatio = computeMouthOpenRatio(face);
             const yaw = computeYaw(face);
             const yawAbs = Math.abs(yaw);
@@ -802,8 +811,9 @@
             const iconSuccess = document.getElementById('icon-success');
             const iconFailed = document.getElementById('icon-failed');
 			const avatarCircle = document.getElementById('avatar-circle');
-			resultIcon.style.display = 'flex';
+			
             if (passed) {
+				resultIcon.style.display = 'flex';
                 resultIcon.classList.remove('failed');
                 resultIcon.classList.add('success');
 				avatarCircle.classList.remove('failed');
@@ -812,17 +822,19 @@
                 iconFailed.style.display = 'none';
                 resultTitle.textContent = i18n[lang].result.passed;
 				startUploadFlow();
+				showPage(PAGES.RESULT);
             } else {
-                resultIcon.classList.remove('success');
-                resultIcon.classList.add('failed');
-				avatarCircle.classList.remove('success');
-				avatarCircle.classList.add('failed');
-                iconSuccess.style.display = 'none';
-                iconFailed.style.display = 'block';
-                resultTitle.textContent = i18n[lang].result.failed;
+				// resultIcon.style.display = 'flex';
+    //             resultIcon.classList.remove('success');
+    //             resultIcon.classList.add('failed');
+				// avatarCircle.classList.remove('success');
+				// avatarCircle.classList.add('failed');
+    //             iconSuccess.style.display = 'none';
+    //             iconFailed.style.display = 'block';
+    //             resultTitle.textContent = i18n[lang].result.failed;
+				showPage(PAGES.RESULTFAIL);
+				window.location.href = 'faceFail.html';
             }
-
-            showPage(PAGES.RESULT);
         };
 
         const startCountdown = () => {
@@ -932,7 +944,7 @@
                     video.play();
                 };
             } catch (error) {
-                
+                showResult(false);
             }
         }
 
@@ -951,7 +963,7 @@
 				await human.webcam.start({ crop: true });
 				human.video(human.webcam.element);
 			}catch (error) {
-                
+                showResult(false);
             }
 		}
 		
@@ -998,8 +1010,19 @@
 		async function startUploadFlow() {
 		    showUploadLoading();
 			try {
-				const blob = await captureCurrentFrameBlob();
-			    const data = await uploadFace(blob);
+				if(!bestFace.blob){
+					bestFace.blob = await captureCurrentFrameBlob();
+				}
+				try{
+					//显示最佳人脸
+					const ctx = canvas.getContext('2d');
+					const imageBitmap = await createImageBitmap(bestFace.blob);
+					ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+					imageBitmap.close(); // 释放
+				}catch(e){
+					
+				}
+			    const data = await uploadFace(bestFace.blob);
 			    const rejected = data && (data.success === false || data.ok === false || data.code === -1 || data.code != 1000);
 			    if (rejected) {
 			        const errorMsg = (data && data.msg) ? data.msg : '';
@@ -1052,6 +1075,27 @@
 		            }
 		        });
 		    });
+		}
+		
+		function getBestFaceBlob(face) {
+			const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
+			if (score > thresholds.faceScore && score > bestFace.score) {
+				const video = document.getElementById('init-camera');
+				if (!video.videoWidth || !video.videoHeight) {
+				    return;
+				}
+				const captureCanvas = document.createElement('canvas');
+				captureCanvas.width = video.videoWidth;
+				captureCanvas.height = video.videoHeight;
+				const ctx = captureCanvas.getContext('2d');
+				ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+				captureCanvas.toBlob((blob) => {
+				    if (blob){
+						bestFace.blob = blob;
+						bestFace.score = score;
+					}
+				}, 'image/jpeg', 0.95);
+			}
 		}
 
         document.getElementById('btn-start').addEventListener('click', () => {
