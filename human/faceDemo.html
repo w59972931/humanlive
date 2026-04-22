@@ -926,10 +926,10 @@
             // // 绘制人脸检测边框
             // await human.draw.all(canvas, interpolated);
 			
-            // if (currentStep() !== STEP.DONE) {
-            //     const face = getPrimaryFace(interpolated);
-            //     checkStep(face);
-            // }
+            if (currentStep() !== STEP.DONE) {
+                const face = getPrimaryFace(interpolated);
+                checkStep(face);
+            }
 
             setTimeout(drawLoop, 30);
         }
