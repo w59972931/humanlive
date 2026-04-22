@@ -611,7 +611,7 @@
 		const thresholds = {
 		    mouthOpenRatio: 0.075,
 		    headYawRadians: 0.2,
-		    stableFrames: 2,
+		    stableFrames: 5,
 		    faceScore: 0.65,
 			fixNum:0.05
 		};
@@ -734,7 +734,7 @@
 
         const markStepPassed = () => {
             state.stepIndex += 1;
-            state.stableCount = 0;
+            // state.stableCount = 0;
             state.lastCompletedAt = nowMs();
             updateStepIndicator();
 
@@ -767,14 +767,14 @@
             }
 
             if (!face) {
-                state.stableCount = 0;
+                // state.stableCount = 0;
                 statusText.textContent = i18n[lang].statusTexts.insideCircle;
                 return;
             }
 
             const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
             if (score && score < thresholds.faceScore) {
-                state.stableCount = 0;
+                // state.stableCount = 0;
                 statusText.textContent = i18n[lang].statusTexts.insideCircle;
                 return;
             }
