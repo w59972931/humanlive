@@ -422,7 +422,7 @@
 				        <div class="tip-text">Do not move quickly</div>
 				    </div>
 				</div>
-				<button id="btn-start" class="start-btn">Start Now</button>
+				<button id="btn-start" class="start-btn" style="background-color: #999999;">Loading model...</button>
 			</div>
 			
 			<!-- 检测页面 -->
@@ -813,7 +813,7 @@
             
             if (mouthOk || leftOk || rightOk) state.stableCount += 1;
 
-            statusText.textContent = `stableCount:${(state.stableCount)}Face: ${((yawAbsMax-yawAbsMin).toFixed(2))} | Mouth: ${mouthRatio.toFixed(2)} | Yaw: ${yaw.toFixed(2)}`;
+            statusText.textContent = `stableCount:${(state.stableCount)} | Face: ${((yawAbsMax-yawAbsMin).toFixed(2))} | Mouth: ${mouthRatio.toFixed(2)} | Yaw: ${yaw.toFixed(2)}`;
 
             if (state.stableCount >= thresholds.stableFrames) {
 				showResult(true);
