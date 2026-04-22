@@ -65,8 +65,6 @@ async function drawLoop() { // main screen refresh loop
 }
 
 async function webCam() {
-  const devices = await human.webcam.enumerate();
-  const id = devices[0].deviceId; // use first available video source
   const webcamStatus = await human.webcam.start({ element: video, crop: false, }); // use human webcam helper methods and associate webcam stream with a dom element
   log(webcamStatus);
   canvas.width = human.webcam.width;
@@ -123,7 +121,7 @@ async function detectionLoop() { // main detection loop
 	    await human.warmup(); // warmup function to initialize backend for future faster detection
 	    await webCam(); // start webcam
 	    await detectionLoop(); // start detection loop
-	    await drawLoop(); // start draw loop
+	    // await drawLoop(); // start draw loop
 	  }
 
       window.onload = main;
