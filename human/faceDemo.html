@@ -611,7 +611,7 @@
 		const thresholds = {
 		    mouthOpenRatio: 0.075,
 		    headYawRadians: 0.2,
-		    stableFrames: 8,
+		    stableFrames: 5,
 		    faceScore: 0.65,
 			fixNum:0.05
 		};
@@ -815,7 +815,7 @@
             statusText.textContent = `Face: ${((yawAbsMax-yawAbsMin).toFixed(2))} | Mouth: ${mouthRatio.toFixed(2)} | Yaw: ${yaw.toFixed(2)}`;
 
             if (state.stableCount >= thresholds.stableFrames) {
-				// showResult(true);
+				showResult(true);
             }
         };
 
@@ -823,7 +823,8 @@
             human.webcam.pause();
             if (passed) {
 				showPage(PAGES.RESULT);
-				startUploadFlow();
+				showResultState();
+				// startUploadFlow();
             } else {
 				showPage(PAGES.RESULTFAIL);
 				window.location.href = 'faceFail.html';
