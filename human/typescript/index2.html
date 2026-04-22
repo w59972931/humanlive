@@ -49,42 +49,25 @@
 	  
 async function drawLoop() { // main screen refresh loop
   if (!video.paused) {
+	await human.detect(video);
     const interpolated = human.next(human.result); // smoothen result using last-known results
     const processed = await human.image(video); // get current video frame, but enhanced with human.filters
     human.draw.canvas(processed.canvas, canvas);
-
-    const opt = { bodyLabels: `person confidence [score] and ${human.result?.body?.[0]?.keypoints.length} keypoints` };
-    await human.draw.all(canvas, interpolated, opt); // draw labels, boxes, lines, etc.
-    perf(interpolated.performance); // write performance data
+    await human.draw.all(canvas, interpolated); // draw labels, boxes, lines, etc.
   }
-  const now = human.now();
-  fps.drawFPS = Math.round(1000 * 1000 / (now - timestamp.draw)) / 1000;
-  timestamp.draw = now;
-  status(video.paused ? 'paused' : `fps: ${fps.detectFPS.toFixed(1).padStart(5, ' ')} detect | ${fps.drawFPS.toFixed(1).padStart(5, ' ')} draw`); // write status
   setTimeout(drawLoop, 30); // use to slow down refresh from max refresh rate to target of 30 fps
 }
 
 async function webCam() {
-  const webcamStatus = await human.webcam.start({ element: video, crop: false, }); // use human webcam helper methods and associate webcam stream with a dom element
-  log(webcamStatus);
+  await human.webcam.start({ element: video, crop: false, }); // use human webcam helper methods and associate webcam stream with a dom element
   canvas.width = human.webcam.width;
   canvas.height = human.webcam.height;
 }
 
 async function detectionLoop() { // main detection loop
   if (!video.paused) {
-    if (timestamp.start === 0) timestamp.start = human.now();
-    // log('profiling data:', await human.profile(video));
     await human.detect(video); // actual detection; were not capturing output in a local variable as it can also be reached via human.result
-    const tensors = human.tf.memory().numTensors; // check current tensor usage for memory leaks
-    if (tensors - timestamp.tensors !== 0) log('allocated tensors:', tensors - timestamp.tensors); // printed on start and each time there is a tensor leak
-    timestamp.tensors = tensors;
-    fps.detectFPS = Math.round(1000 * 1000 / (human.now() - timestamp.detect)) / 1000;
-    fps.frames++;
-    fps.averageMs = Math.round(1000 * (human.now() - timestamp.start) / fps.frames) / 1000;
-    if (fps.frames % 100 === 0 && !video.paused) log('performance', { ...fps, tensors: timestamp.tensors });
   }
-  timestamp.detect = human.now();
   requestAnimationFrame(detectionLoop); // start new frame immediately
 }
 
@@ -120,8 +103,8 @@ async function detectionLoop() { // main detection loop
 	    status('initializing...');
 	    await human.warmup(); // warmup function to initialize backend for future faster detection
 	    await webCam(); // start webcam
-	    await detectionLoop(); // start detection loop
-	    // await drawLoop(); // start draw loop
+	    // await detectionLoop(); // start detection loop
+	    await drawLoop(); // start draw loop
 	  }
 
       window.onload = main;
