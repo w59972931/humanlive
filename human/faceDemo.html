@@ -611,7 +611,7 @@
 		const thresholds = {
 		    mouthOpenRatio: 0.075,
 		    headYawRadians: 0.2,
-		    stableFrames: 5,
+		    stableFrames: 2,
 		    faceScore: 0.65,
 			fixNum:0.05
 		};
@@ -623,7 +623,8 @@
 		    leftYawSign: 0,
 		    lastCompletedAt: 0,
 		    startTime: 0,
-		    lastStepChangeTime: 0
+		    lastStepChangeTime: 0,
+			isStartStep:false
 		};
 		
 		const ACTIVE_MAX_WAIT_MS = 15000;
@@ -752,6 +753,8 @@
             // 检查总时间是否超过15秒
             const elapsedTime = nowMs() - state.startTime;
             if (elapsedTime > ACTIVE_MAX_WAIT_MS) {
+				state.stableCount = 0;
+				state.isStartStep = false;
                 showResult(false);
                 return;
             }
@@ -760,7 +763,6 @@
             const stepElapsedTime = nowMs() - state.lastStepChangeTime;
             if (stepElapsedTime > NO_FACE_TIMEOUT_MS) {
                 state.stepIndex = (state.stepIndex + 1) % steps.length;
-                state.stableCount = 0;
                 state.lastStepChangeTime = nowMs();
                 updateStepIndicator();
                 detectionHint.textContent = stepText();
@@ -881,7 +883,7 @@
 
             let count = COUNTDOWN_SECONDS;
             countdownEl.textContent = `${count}s`;
-
+			drawLoop();
             const interval = setInterval(() => {
                 count--;
                 if (count > 0) {
@@ -902,6 +904,7 @@
             state.stableCount = 0;
             state.leftYawSign = 0;
             state.lastCompletedAt = 0;
+			state.isStartStep = true;
             state.startTime = nowMs();
             state.lastStepChangeTime = nowMs();
             updateStepIndicator();
@@ -917,7 +920,7 @@
         async function drawLoop() {
             if (state.currentPage !== PAGES.DETECTION) return;
 
-			await human.detect(videos);
+			// await human.detect(videos);
 			const interpolated = human.next(human.result);
 			const processed = await human.image(videos); 
 			human.draw.canvas(processed.canvas, canvas);
@@ -927,7 +930,7 @@
             // // 绘制人脸检测边框
             // await human.draw.all(canvas, interpolated);
 			
-            if (currentStep() !== STEP.DONE) {
+            if (currentStep() !== STEP.DONE && state.isStartStep) {
                 const face = getPrimaryFace(interpolated);
                 checkStep(face);
             }
@@ -941,6 +944,7 @@
             state.leftYawSign = 0;
             state.lastCompletedAt = 0;
             statusText.textContent = '';
+			state.isStartStep = false;
 			yawAbsMin = 0;
 			yawAbsMax = 0;
             updateStepIndicator();
