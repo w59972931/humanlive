@@ -573,8 +573,21 @@
 		    DONE: 'DONE'
 		};
 		const humanConfig = {
+			backend: 'webgl',
 		    modelBasePath: './models',
-		    filter: { enabled: true, equalization: true, flip: true },
+			filter: { enabled: true, equalization: false, flip: false},
+			// face: {
+			// 	enabled: true,
+			// 	detector: { rotation: false },
+			// 	mesh: { enabled: true },
+			// 	iris: { enabled: true },
+			// 	attention: { enabled: false },
+			// 	emotion: { enabled: true },
+			// 	description: { enabled: true },
+			// 	antispoof: { enabled: true },
+			// 	liveness: { enabled: true }
+			// },
+		    // filter: { enabled: true, equalization: true, flip: true },
 		    face: {
 		        enabled: true,
 		        detector: { rotation: false },
@@ -618,6 +631,7 @@
 		const COUNTDOWN_SECONDS = 3;
 		
 		const canvas = document.getElementById('canvas');
+		const videos = document.getElementById('init-camera');
 		const detectionHint = document.getElementById('detection-hint');
 		const statusText = document.getElementById('status-text');
 		const step1 = document.getElementById('step-1');
@@ -852,7 +866,6 @@
 
         const startCountdown = () => {
             const countdownEl = document.getElementById('avatar-countdown');
-            const cameraEl = document.getElementById('init-camera');
             const btnStart = document.getElementById('btn-start');
             const attentionBox = document.getElementById('attention-box');
             const countdownHint = document.getElementById('countdown-hint');
@@ -863,7 +876,7 @@
             tipsGrid.style.display = 'none';
             countdownHint.classList.add('active');
             countdownEl.classList.add('active');
-            cameraEl.classList.add('countdown-active');
+            videos.classList.add('countdown-active');
 
             let count = COUNTDOWN_SECONDS;
             countdownEl.textContent = `${count}s`;
@@ -875,7 +888,7 @@
                 } else {
                     clearInterval(interval);
                     countdownEl.classList.remove('active');
-                    cameraEl.classList.remove('countdown-active');
+                    videos.classList.remove('countdown-active');
                     countdownHint.classList.remove('active');
                     startDetection();
                 }
@@ -903,14 +916,20 @@
         async function drawLoop() {
             if (state.currentPage !== PAGES.DETECTION) return;
 
-            const interpolated = human.next();
-            human.draw.canvas(human.webcam.element, canvas);
-            // 绘制人脸检测边框
-            await human.draw.all(canvas, interpolated);
-            if (currentStep() !== STEP.DONE) {
-                const face = getPrimaryFace(interpolated);
-                checkStep(face);
-            }
+			await human.detect(videos);
+			const interpolated = human.next(human.result);
+			const processed = await human.image(videos); 
+			human.draw.canvas(processed.canvas, canvas);
+			await human.draw.all(canvas, interpolated);
+            // const interpolated = human.next();
+            // human.draw.canvas(human.webcam.element, canvas);
+            // // 绘制人脸检测边框
+            // await human.draw.all(canvas, interpolated);
+			
+            // if (currentStep() !== STEP.DONE) {
+            //     const face = getPrimaryFace(interpolated);
+            //     checkStep(face);
+            // }
 
             setTimeout(drawLoop, 30);
         }
@@ -948,13 +967,12 @@
         };
 
         async function initCamera() {
-            const video = document.getElementById('init-camera');
             try {
 				const constraints = {video: {facingMode: "user"}, audio: false};
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    video.play();
+                videos.srcObject = stream;
+                videos.onloadedmetadata = () => {
+                    videos.play();
                 };
             } catch (error) {
                 showResult(false);
@@ -962,19 +980,18 @@
         }
 
         function stopInitCamera() {
-            const video = document.getElementById('init-camera');
-            if (video.srcObject) {
-                const stream = video.srcObject;
+            if (videos.srcObject) {
+                const stream = videos.srcObject;
                 const tracks = stream.getTracks();
                 tracks.forEach(track => track.stop());
-                video.srcObject = null;
+                videos.srcObject = null;
             }
         }
 		
 		async function initHuman(){
 			try {
-				await human.webcam.start({ crop: true });
-				human.video(human.webcam.element);
+				await human.webcam.start({ crop: false });
+				human.video(videos);
 			}catch (error) {
                 showResult(false);
             }
@@ -1002,17 +1019,16 @@
 		}
 		
 		function captureCurrentFrameBlob() {
-			const video = document.getElementById('init-camera');
 		    return new Promise((resolve, reject) => {
-		        if (!video.videoWidth || !video.videoHeight) {
+		        if (!videos.videoWidth || !videos.videoHeight) {
 		            reject(new Error('video not ready'));
 		            return;
 		        }
 		        const captureCanvas = document.createElement('canvas');
-		        captureCanvas.width = video.videoWidth;
-		        captureCanvas.height = video.videoHeight;
+		        captureCanvas.width = videos.videoWidth;
+		        captureCanvas.height = videos.videoHeight;
 		        const ctx = captureCanvas.getContext('2d');
-		        ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+		        ctx.drawImage(videos, 0, 0, captureCanvas.width, captureCanvas.height);
 		        captureCanvas.toBlob((blob) => {
 		            if (blob) resolve(blob);
 		            else reject(new Error('capture failed'));
@@ -1094,15 +1110,14 @@
 		function getBestFaceBlob(face) {
 			const score = typeof face.score === 'number' ? face.score : (typeof face.confidence === 'number' ? face.confidence : 0);
 			if (score > thresholds.faceScore && score > bestFace.score) {
-				const video = document.getElementById('init-camera');
-				if (!video.videoWidth || !video.videoHeight) {
+				if (!videos.videoWidth || !videos.videoHeight) {
 				    return;
 				}
 				const captureCanvas = document.createElement('canvas');
-				captureCanvas.width = video.videoWidth;
-				captureCanvas.height = video.videoHeight;
+				captureCanvas.width = videos.videoWidth;
+				captureCanvas.height = videos.videoHeight;
 				const ctx = captureCanvas.getContext('2d');
-				ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+				ctx.drawImage(videos, 0, 0, captureCanvas.width, captureCanvas.height);
 				captureCanvas.toBlob((blob) => {
 				    if (blob){
 						bestFace.blob = blob;
