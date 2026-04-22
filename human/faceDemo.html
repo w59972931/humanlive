@@ -190,12 +190,6 @@
             transition: transform 0.2s ease, background 0.2s ease;
         }
 
-        .start-btn:active {
-            transform: scale(0.98);
-            background: #45a049;
-        }
-
-
         .detection-container {
             text-align: center;
             padding: 1.25rem;
@@ -478,6 +472,7 @@
         const i18n = {
             en: {
                 initTitle: 'Please face the screen and follow the prompts',
+				initModel:'Loading model...',
                 attentionText: 'Please face the screen',
                 countdownHint: 'Please ensure your face is inside the circle; detection will begin after the countdown ends',
                 tips: {
@@ -505,6 +500,7 @@
             },
             zh: {
                 initTitle: '请正对屏幕并跟随提示',
+				initModel:'模型加载中...',
                 attentionText: '请正对屏幕',
                 countdownHint: '请确保人脸在圆圈内，倒计时结束后将开始检测',
                 tips: {
@@ -532,6 +528,7 @@
             },
             ur: {
                 initTitle: 'براہِ کرم اسکرین کی طرف سیدھا دیکھیں اور ہدایات پر عمل کریں',
+				initModel:'ماڈل لوڈ ہو رہا ہے...',
                 attentionText: 'براہِ کرم اسکرین کی طرف سیدھا دیکھیں',
                 countdownHint: 'یقینی بنائیں کہ چہرہ دائرے کے اندر ہو، کاؤنٹ ڈاؤن ختم ہونے کے بعد جانچ شروع ہوگی',
                 tips: {
@@ -638,6 +635,7 @@
 		const step1 = document.getElementById('step-1');
 		const step2 = document.getElementById('step-2');
 		const step3 = document.getElementById('step-3');
+		const btnStart = document.getElementById('btn-start');
 		
 		const uploadLoading = document.getElementById('upload-loading');
 		
@@ -675,7 +673,8 @@
             tipItems[3].textContent = i18n[lang].tips.noFastMove;
             
             // 更新按钮文本
-            document.getElementById('btn-start').textContent = i18n[lang].startBtn;
+            btnStart.textContent = i18n[lang].initModel;
+			btnStart.style.backgroundColor = '#999999';
             document.getElementById('btn-retry').textContent = i18n[lang].retryBtn;
         }
 
@@ -825,8 +824,8 @@
             human.webcam.pause();
             if (passed) {
 				showPage(PAGES.RESULT);
-				showResultState(passed);
-				// startUploadFlow();
+				// showResultState(passed);
+				startUploadFlow();
             } else {
 				showPage(PAGES.RESULTFAIL);
 				window.location.href = 'faceFail.html';
@@ -869,7 +868,7 @@
 
         const startCountdown = () => {
             const countdownEl = document.getElementById('avatar-countdown');
-            const btnStart = document.getElementById('btn-start');
+            
             const attentionBox = document.getElementById('attention-box');
             const countdownHint = document.getElementById('countdown-hint');
             const tipsGrid = document.getElementById('tips-grid');
@@ -949,7 +948,6 @@
 			yawAbsMax = 0;
             updateStepIndicator();
 
-            const btnStart = document.getElementById('btn-start');
             const attentionBox = document.getElementById('attention-box');
             const countdownHint = document.getElementById('countdown-hint');
             const tipsGrid = document.getElementById('tips-grid');
@@ -996,7 +994,7 @@
 		async function initHuman(){
 			try {
 				await human.webcam.start({ crop: false });
-				human.video(videos);
+				await human.video(videos);
 			}catch (error) {
                 showResult(false);
             }
@@ -1133,7 +1131,9 @@
 		}
 
         document.getElementById('btn-start').addEventListener('click', () => {
-            startCountdown();
+			if(btnStart.textContent == i18n[lang].startBtn){
+				startCountdown();
+			}
         });
 
         document.getElementById('btn-retry').addEventListener('click', () => {
@@ -1146,10 +1146,12 @@
         //     else human.webcam.pause();
         // });
 
-        window.onload = () => {
+        window.onload = async() => {
             initI18n();
             initCamera();
-			initHuman();
+			await initHuman();
+			btnStart.style.backgroundColor = '#02B17B';
+			btnStart.textContent = i18n[lang].startBtn;
         };
     </script>
 </body>
