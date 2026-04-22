@@ -64,6 +64,32 @@ async function drawLoop() { // main screen refresh loop
   setTimeout(drawLoop, 30); // use to slow down refresh from max refresh rate to target of 30 fps
 }
 
+async function webCam() {
+  const devices = await human.webcam.enumerate();
+  const id = devices[0].deviceId; // use first available video source
+  const webcamStatus = await human.webcam.start({ element: video, crop: false, width, id }); // use human webcam helper methods and associate webcam stream with a dom element
+  log(webcamStatus);
+  canvas.width = human.webcam.width;
+  canvas.height = human.webcam.height;
+}
+
+async function detectionLoop() { // main detection loop
+  if (!video.paused) {
+    if (timestamp.start === 0) timestamp.start = human.now();
+    // log('profiling data:', await human.profile(video));
+    await human.detect(video); // actual detection; were not capturing output in a local variable as it can also be reached via human.result
+    const tensors = human.tf.memory().numTensors; // check current tensor usage for memory leaks
+    if (tensors - timestamp.tensors !== 0) log('allocated tensors:', tensors - timestamp.tensors); // printed on start and each time there is a tensor leak
+    timestamp.tensors = tensors;
+    fps.detectFPS = Math.round(1000 * 1000 / (human.now() - timestamp.detect)) / 1000;
+    fps.frames++;
+    fps.averageMs = Math.round(1000 * (human.now() - timestamp.start) / fps.frames) / 1000;
+    if (fps.frames % 100 === 0 && !video.paused) log('performance', { ...fps, tensors: timestamp.tensors });
+  }
+  timestamp.detect = human.now();
+  requestAnimationFrame(detectionLoop); // start new frame immediately
+}
+
       // async function drawLoop() { // main screen refresh loop
       //   const interpolated = human.next(); // get smoothened result using last-known results which are continously updated based on input webcam video
       //   human.draw.canvas(human.webcam.element, canvas); // draw webcam video to screen canvas // better than using procesed image as this loop happens faster than processing loop
@@ -71,18 +97,34 @@ async function drawLoop() { // main screen refresh loop
       //   setTimeout(drawLoop, 30); // use to slow down refresh from max refresh rate to target of 1000/30 ~ 30 fps
       // }
 
-      async function main() { // main entry point
-        document.getElementById('log').innerHTML = `human version: ${human.version} | tfjs version: ${human.tf.version['tfjs-core']}<br>platform: ${human.env.platform} | agent ${human.env.agent}`;
-        await human.webcam.start({ crop: true }); // find webcam and start it
-        human.video(human.webcam.element); // instruct human to continously detect video frames
-        canvas.width = human.webcam.width; // set canvas resolution to input webcam native resolution
-        canvas.height = human.webcam.height;
-        canvas.onclick = async () => { // pause when clicked on screen and resume on next click
-          if (human.webcam.paused) await human.webcam.play();
-          else human.webcam.pause();
-        };
-        await drawLoop(); // start draw loop
-      }
+      // async function main() { // main entry point
+      //   document.getElementById('log').innerHTML = `human version: ${human.version} | tfjs version: ${human.tf.version['tfjs-core']}<br>platform: ${human.env.platform} | agent ${human.env.agent}`;
+      //   await human.webcam.start({ crop: true }); // find webcam and start it
+      //   human.video(human.webcam.element); // instruct human to continously detect video frames
+      //   canvas.width = human.webcam.width; // set canvas resolution to input webcam native resolution
+      //   canvas.height = human.webcam.height;
+      //   canvas.onclick = async () => { // pause when clicked on screen and resume on next click
+      //     if (human.webcam.paused) await human.webcam.play();
+      //     else human.webcam.pause();
+      //   };
+      //   await drawLoop(); // start draw loop
+      // }
+	  
+	  async function main() { // main entry point
+	    log('human version:', human.version, '| tfjs version:', human.tf.version['tfjs-core']);
+	    log('platform:', human.env.platform, '| agent:', human.env.agent);
+	    status('loading...');
+	    await human.load(); // preload all models
+	    log('backend:', human.tf.getBackend(), '| available:', human.env.backends);
+	    log('models stats:', human.models.stats());
+	    log('models loaded:', human.models.loaded());
+	    log('environment', human.env);
+	    status('initializing...');
+	    await human.warmup(); // warmup function to initialize backend for future faster detection
+	    await webCam(); // start webcam
+	    await detectionLoop(); // start detection loop
+	    await drawLoop(); // start draw loop
+	  }
 
       window.onload = main;
     </script>  
